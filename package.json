@@ -1,0 +1,23 @@
+{
+  "name": "that-social-api-maker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hef9874/that-social-api-maker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hef9874/that-social-api-maker/issues"
+  },
+  "homepage": "https://github.com/hef9874/that-social-api-maker#readme",
+  "dependencies": {
+    "mongodb": "^5.4.0"
+  }
+}
