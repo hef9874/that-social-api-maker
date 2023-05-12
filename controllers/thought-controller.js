@@ -1,54 +1,52 @@
 const { Thought, User } = require('../models');
 
 const thoughtController = {
-    async allThoughts(req, res) {
+    async getAllThoughts(req, res) {
         try {
-            const thoughtDb = await Thought.find().sort({ createdAt: -1 });
-            res.status(200).json(thoughtDb);
+            const thoughtDb = await Thought.find({})
+                .populate({ path: 'reactions', select: '-__v' })
+                .select('-__v');
+            res.json(thoughtDb);
         } catch (err) {
-            console.error(err);
             res.status(500).json(err);
         }
     },
-    async showSingleThought(req, res) {
+
+    async showSingleThought({ params }, res) {
         try {
-            const thoughtDb = await Thought.findById(req.params.thoughtId);
-            if (!thoughtDb) {
-                res.status(404).json({ message: "Not found." })
-                return;
+            const thought = await Thought.findOne({ _id: params.id })
+                .populate({ path: 'reactions', select: '-__v' })
+                .select('-__v');
+            
+            if (thought) {
+                res.json(thought);
+            } else {
+                res.status(404).json({ message: thought404Message(params.id) });
             }
-            res.status(200).json(thought);
         } catch (err) {
-            console.error(err);
-            res.status(404).json(err);
+            res.status(500).json(err);
         }
     },
-    async newThought(req, res) {
+
+    async createThought({ body }, res) {
         try {
-            const [thought, user] = await Promise.all([
-                Thought.create(req.body),
-                findOneAndUpdate(
-                    { _id: req.body.userId },
-                    { $addToSet: { thoughts: thought._id } },
-                    { new: true }
-                )
-            ]);
-            if (!thought) {
-                res.status(404).json({ message: 'Not found' });
-                return;
-            }
+            const { thoughtText, username, userId } = body;
+            
+            const thought = await Thought.create({ thoughtText, username });
+            await User.findOneAndUpdate({ _id: userId }, { $push: { thoughts: thought._id } }, { new: true });
+            
+            res.json(thought);
         } catch (err) {
-            console.error(err);
-            res.status(500).json(err);
+            res.status(400).json(err);
         }
     },
     async deleteThought(req, res) {
         try {
             const [deletedThought, user] = await Promise.all([
-                Thought.findOneAndDelete({ _id: req.params.thoughtId }),
+                Thought.findOneAndDelete({ _id: req.params.id }),
                 User.findOneAndUpdate(
                     { _id: req.body.userId },
-                    { $pull: { thought: req.params.thoughtId } },
+                    { $pull: { thought: req.params.id } },
                     { new: true }
                 )
             ]);
